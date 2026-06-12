@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CNMS Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Auto refresh every 60 seconds -->
+    <meta http-equiv="refresh" content="60">
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous"
+    />
+
+    <style>
+        body {
+            background-color: #f4f6f8;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .card-summary {
+            border: none;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            border-radius: 0.75rem;
+        }
+
+        .card-summary .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #6c757d;
+        }
+
+        .card-summary .value {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+
+        .card-summary .sub {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .table-card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        thead th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .badge {
+            min-width: 60px;
+        }
+
+        .status-up {
+            background-color: #16a34a !important;
+        }
+
+        .status-down {
+            background-color: #dc2626 !important;
+        }
+
+        .status-na {
+            background-color: #6b7280 !important;
+        }
+
+        .status-up,
+        .status-down,
+        .status-na {
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+        <span class="navbar-brand">CNMS Dashboard</span>
+        <span class="navbar-text text-white small">
+            Last refreshed: {{ last_refreshed }} &nbsp;|&nbsp; Auto‑refresh 60s
+        </span>
+    </div>
+</nav>
+
+<div class="container pb-4">
+
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-summary">
+                <div class="card-body">
+                    <div class="label">Total Sites</div>
+                    <div class="value">{{ total_sites }}</div>
+                    <div class="sub">All monitored locations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-summary">
+                <div class="card-body">
+                    <div class="label">Routers Up</div>
+                    <div class="value text-success">{{ router_up }}</div>
+                    <div class="sub">Out of {{ total_sites }} routers</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-summary">
+                <div class="card-body">
+                    <div class="label">BSNL Links Up</div>
+                    <div class="value text-success">{{ bsnl_up }}</div>
+                    <div class="sub">BSNL WAN links reachable</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="card card-summary">
+                <div class="card-body">
+                    <div class="label">Jio Links Up</div>
+                    <div class="value text-success">{{ jio_up }}</div>
+                    <div class="sub">Jio WAN links reachable</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table card -->
+    <div class="card table-card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Site‑wise Link Status</span>
+            <span class="text-muted small">Showing Router / BSNL / Jio health</span>
+        </div>
+
+        <div class="table-responsive" style="max-height: 520px;">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light position-sticky top-0">
+                    <tr>
+                        <th scope="col" style="width: 50px;">#</th>
+                        <th scope="col">Location</th>
+                        <th scope="col" class="text-center">Router</th>
+                        <th scope="col" class="text-center">BSNL</th>
+                        <th scope="col" class="text-center">Jio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ row.location }}</td>
+
+                        <!-- Router status -->
+                        <td class="text-center">
+                            {% if row.router == "UP" %}
+                                <span class="badge status-up">UP</span>
+                            {% elif row.router == "DOWN" %}
+                                <span class="badge status-down">DOWN</span>
+                            {% else %}
+                                <span class="badge status-na">NA</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- BSNL status -->
+                        <td class="text-center">
+                            {% if row.bsnl == "UP" %}
+                                <span class="badge status-up">UP</span>
+                            {% elif row.bsnl == "DOWN" %}
+                                <span class="badge status-down">DOWN</span>
+                            {% else %}
+                                <span class="badge status-na">NA</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Jio status -->
+                        <td class="text-center">
+                            {% if row.jio == "UP" %}
+                                <span class="badge status-up">UP</span>
+                            {% elif row.jio == "DOWN" %}
+                                <span class="badge status-down">DOWN</span>
+                            {% else %}
+                                <span class="badge status-na">NA</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bootstrap JS (optional, for future features) -->
+<script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+></script>
+</body>
+</html>
